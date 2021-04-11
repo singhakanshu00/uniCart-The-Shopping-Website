@@ -1,0 +1,192 @@
+{% extends 'shop/basic.html' %}
+
+{% block titles%}Checkout: UniCart{% endblock %}
+{% block css%}
+
+{% endblock %}
+{% block body%}
+	<div class="container mt-5">
+		<div class="col">
+			<h5>Step 1: UniCart Express checkout, Review your cart items:</h5>	
+			<div class="mt-4">
+				<ul class="list-group" id="items">
+				  
+				</ul>
+			</div>
+		</div>
+		<div class="col mt-4">
+			<h5> Your slip: </h5>
+			<div class="mt-4">
+				<ul class="list-group" id="slip">
+
+				</ul>
+				<div class="mt-2" id="total">
+				</div>
+			</div>
+
+		</div>
+		<div class="col mt-5">
+			<h5>Step 2: Enter your address and other details:</h5>
+			<div class="my-4">
+				<form action="/shop/checkout/" class="row g-3" method="post" autocomplete="off">{% csrf_token%}
+					<input type="hidden" name="items_json" id="items_json" value="i1234">
+					<div class="col-12">
+					    <label for="inputName" class="form-label">Name</label>
+					    <input type="name" class="form-control" id="inputName" placeholder="Name" name="name" required>
+					</div>
+					<div class="col-md-6">
+					    <label for="inputEmail4" class="form-label">Email</label>
+					    <input type="email" class="form-control" id="inputEmail4" name="email" required>
+					</div>
+					<div class="col-md-6">
+					    <label for="inputPhone" class="form-label">Phone No</label>
+					    <input type="tel" class="form-control" id="inputPhone" name="phone" required >
+					</div>
+					<div class="col-12">
+					    <label for="inputAddress" class="form-label">Address</label>
+					    <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St" name="add1" required>
+					</div>
+					<div class="col-12">
+					    <label for="inputAddress2" class="form-label">Address Line 2</label>
+					    <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor" name="add2" required>
+					</div>
+					<div class="col-md-6">
+					    <label for="inputCity" class="form-label">City</label>
+					    <input type="text" class="form-control" id="inputCity" name="city" required>
+					</div>
+					<div class="col-md-4">
+					    <label for="inputState" class="form-label">State</label>
+					    <input type="text" class="form-control" id="inputState" placeholder="Enter Correct State" name="state" required>
+					</div>
+					<div class="col-md-2">
+					    <label for="inputZip" class="form-label">Zip</label>
+					    <input type="text" class="form-control" id="inputZip" name="zip" required>
+				    </div>
+					<div class="col-12 mt-2 mb-5">
+					    <button type="submit" class="btn btn-primary">Place Order</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+{% endblock %}
+{% block js %}
+	<script>
+		if(localStorage.getItem("cart") == null){
+            var cart = null;
+        }
+        else{
+            cart = JSON.parse(localStorage.getItem("cart"));
+        }
+
+        // Increment the cart items when clicked
+
+        var count = 0;
+        for(var item in cart){
+        count += cart[item][0];
+        }
+        document.getElementById('cart').innerHTML = count;
+
+        // Popover doesnot allow all html tags to popup so we have to do this to add specific html tags in the popover.
+		var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
+
+		// To allow button elements
+		myDefaultAllowList.button = []
+
+		// You can push your custom regex to validate your attributes.
+		// Be careful about your regular expressions being too lax
+		var myCustomRegex = /^data-my-app-[\w-]+/
+		myDefaultAllowList['*'].push(myCustomRegex)
+
+		var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+		var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+			return new bootstrap.Popover(popoverTriggerEl)
+		});
+        updatePopcart(cart);
+        function updatePopcart(cart)
+        {
+            var popstr = "";
+            var i = 1;
+            popstr = "" + "<h5>Cart for your items in my shopping cart:</h5><div class='mx-2 my-2'> ";
+            for(var item in cart){
+                popstr = popstr + "<b>"+ i +") </b>";
+                popstr = popstr + " " + cart[item][1].slice(0,19) + ".... -><b> Qty: </b>"+ cart[item][0] + "<br>";
+                i = i+1;
+            }
+            popstr = popstr + "</div><div class='my-3'> <a href='/shop/checkout'><button class='btn btn-primary' id='checkout'>Checkout</button></a> <button class='btn btn-primary' id='clearCart' onclick='clearCart()'>Clear Cart</button> </div>";
+			
+			document.getElementById("popcart").setAttribute('data-bs-content', popstr);
+
+			var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="popover"]'))
+			var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+				return new bootstrap.Popover(popoverTriggerEl)
+			});
+        }
+
+        function clearCart()
+        {
+            cart = JSON.parse(localStorage.getItem('cart'));
+            for(var item in cart){
+                document.getElementById('div'+item).innerHTML = "<button id='"+ item +"' class='btn btn-primary cart'>Add To Cart</button>";
+            }
+            localStorage.clear();
+            location.reload();
+        }
+
+        if(cart == null){
+        	mystr = `<p>Your Cart is empty please add items to your cart.</p>`
+			let items = document.getElementById("items");
+			items.innerHTML += mystr;
+			console.log(mystr);
+        }
+	    else{ 
+	        for(item in cart){
+	        	let name = cart[item][1];
+	        	let qty = cart[item][0];
+	        	mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+					    ${name}
+					    <span class="badge bg-primary rounded-pill">${qty}</span>
+					  </li>`
+				
+				let items = document.getElementById("items");
+				items.innerHTML += mystr;   // We can do this also using document.getElementById().innerHTML. Former is the feature or es6
+			}
+			let total = 0;
+
+			for(item in cart){
+				let name = cart[item][1];
+				let qty = cart[item][0];
+				let amount = cart[item][0] * cart[item][2]
+				mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+						${name}
+						<span class="badge bg-warning">Rs ${amount} </span>
+						</li>`
+
+				let items = document.getElementById("slip");
+				items.innerHTML += mystr;   // We can do this also using document.getElementById().innerHTML. Former is the feature or es6
+				total += amount;
+			}
+			console.log("else");
+			document.getElementById("total").innerHTML = `<h5 class=" d-flex justify-content-between align-items-center">
+						Total:
+						<span class="badge bg-success">Rs ${total}</span>
+						</h5>`;
+			
+		}
+
+		// to set value of hidden input
+		let strcart = JSON.stringify(cart);
+		let items_json = document.getElementById('items_json').value = strcart;
+
+	    {% if thanks %}
+
+			localStorage.clear();
+			alert('Your order has been placed, thanks for doing shoping with us. Your order id is {{id}}, use it to track your order in tracker page.');
+			document.location = "/shop";
+	    {% endif %}
+
+
+	</script>
+
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'shop/basic.html' %}
+
+{% block titles%}{{prod.prod_name}} - UniCart{% endblock %}
+{% block css%}
+
+{% endblock %}
+{% block body%}
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="row">
+                    <img src='/media/{{prod.image}}' width="100%" height="450px" alt="kajal">
+                </div>
+                <div class=" my-4">
+                    <button class="btn btn-primary mx-3">Buy Now</button>
+                    <span id="divpr{{prod.id}}" class="divpr">
+                        <button id="pr{{prod.id}}" class="btn btn-primary cart" onclick="change(id)">Add To Cart</button>
+                    </span>
+                </div>
+                
+            </div>
+            <div class="col-md-8 align-self-center">
+                <div class="d-flex justify-content-center align-items-center ">
+                    <div>
+                        <h5 id="namepr{{prod.id}}">{{prod.prod_name}}</h5>
+                        <h5>Rs <span id="pricepr{{prod.id}}">{{prod.price}}</span>\-</h5>
+                        <p>{{prod.desc}}</p>
+                        <button class="btn btn-success" id="clearThisCart" style="display: none" onclick="clearThisCart()">Clear This Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    </div>
+{% endblock %}
+{% block js%}
+    <script>
+    // Fetching cart items from localstorage
+        if(localStorage.getItem("cart") == null){
+            var cart = {};
+        }
+        else{
+            cart = JSON.parse(localStorage.getItem("cart"));
+            document.getElementById('cart').innerHTML = Object.keys(cart).length;
+            var url = window.location.pathname;
+            var id = url.substring(url.lastIndexOf('/') + 1);
+            if(cart['pr'+id] != undefined){
+                updateCart(cart, 'pr'+id);
+                document.getElementById("clearThisCart").style.display = "block";
+            }
+        }
+
+        // Increment the cart items when clicked
+
+        var count = 0;
+        for(var item in cart){
+        count += cart[item][0];
+        }
+        document.getElementById('cart').innerHTML = count;
+
+        function change(id) {
+        var idstr = id.toString();
+        if(cart[idstr] != undefined){
+                qty = cart[idstr][0] + 1;
+            }
+            else {
+                qty = 1;
+                name = document.getElementById('name'+idstr).innerHTML;
+                price = document.getElementById('price' + idstr).innerHTML;
+                cart[idstr] = [qty, name, price];
+            }
+        localStorage.setItem('cart' , JSON.stringify(cart));
+        document.getElementById('cart').innerHTML = count;
+        if(cart[idstr] != undefined){
+                updateCart(cart, idstr);
+            }
+        location.reload();
+        }
+
+        // Adding popover to cart
+        // Popover doesnot allow all html tags to popup so we have to do this to add specific html tags in the popover.
+        var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
+
+        // To allow button elements
+        myDefaultAllowList.button = []
+
+        // You can push your custom regex to validate your attributes.
+        // Be careful about your regular expressions being too lax
+        var myCustomRegex = /^data-my-app-[\w-]+/
+        myDefaultAllowList['*'].push(myCustomRegex)
+
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        });
+
+        updatePopcart(cart);
+
+        function updatePopcart(cart)
+        {
+            var popstr = "";
+            var i = 1;
+            popstr = "" + "<h5>Cart for your items in my shopping cart:</h5><div class='mx-2 my-2'> ";
+            for(var item in cart){
+                popstr = popstr + "<b>"+ i +") </b>";
+                popstr = popstr + " " + cart[item][1].slice(0,19) + ".... -><b> Qty: </b>"+ cart[item][0] + "<br>";
+                i = i+1;
+            }
+            popstr = popstr + "</div><div class='my-3'> <a href='/shop/checkout'><button class='btn btn-primary' id='checkout'>Checkout</button></a>";
+            document.getElementById("popcart").setAttribute('data-bs-content', popstr);
+
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="popover"]'))
+            var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl)
+            });
+        }
+
+        function clearThisCart()
+        {
+            
+            const existingLocalStorage = JSON.parse(localStorage.getItem('cart') || {});
+            delete existingLocalStorage["pr"+id];
+            localStorage.setItem('cart', JSON.stringify(existingLocalStorage));
+            location.reload();
+        }
+
+        function updateCart(cart, idstr){
+          if(cart[idstr] != undefined){
+            document.getElementById('div'+idstr).innerHTML = "<button id='"+idstr+"' class='btn btn-primary minus' onclick='minus(id)'>-</button><span id='val"+idstr+"' class='mx-2'>"+ cart[idstr][0] + "</span><button id='"+ idstr +"' class='btn btn-primary plus' onclick='plus(id)'>+</button>"
+          }
+          localStorage.setItem('cart' , JSON.stringify(cart));
+          document.getElementById('cart').innerHTML = Object.keys(cart).length;
+        }
+
+        function minus(id) {
+          a = id;
+          cart[a][0] = cart[a][0]-1;
+          cart[a][0] = Math.max(0,cart[a][0]);
+          updateCart(cart, a);
+          if(cart[a][0] == 0){
+            const existingLocalStorage = JSON.parse(localStorage.getItem('cart') || {});
+            delete existingLocalStorage[a];
+            localStorage.setItem('cart', JSON.stringify(existingLocalStorage));
+            document.getElementById('div'+a).innerHTML = "<button id="+ a +" class='btn btn-primary cart' onclick='change(id)'>Add To Cart</button>";
+
+          }
+          location.reload();
+        }
+
+        function plus(id){
+          a = id;
+          cart[a][0] = cart[a][0]+1;
+          updateCart(cart, a);
+          location.reload();
+        }
+    </script>
+{% endblock %}

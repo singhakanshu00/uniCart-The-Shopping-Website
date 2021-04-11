@@ -1,0 +1,102 @@
+{% extends 'shop/basic.html' %}
+
+{% block titles%}Contact Us{% endblock %}
+{% block css%}
+
+{% endblock %}
+{% block body%}
+    <div class="container my-3">
+         <h3>Contact Us</h3>
+         <form action="/shop/contact/" method="post" class="mt-2" autocomplete="false">{% csrf_token %}
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Enter Your Name" required autocomplete="false">
+              </div>
+              <div class="form-group">
+                    <label for="name">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter Your Email" required autocomplete="false">
+              </div>
+              <div class="form-group">
+                    <label for="name">Phone</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter Your Phone Number" required autocomplete="false">
+              </div>
+              <div class="form-group">
+                   <div class="form-group">
+                        <label for="desc">How May We Help You ?</label>
+                        <textarea class="form-control" id="desc" name="desc" rows="3" required autocomplete="off"></textarea>
+                   </div>
+              </div>
+             <button type="submit" class="btn btn-success" id="submit">Submit</button>
+         </form>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+
+        if(localStorage.getItem("cart") == null){
+                    var cart = {};
+                }
+                else{
+                    cart = JSON.parse(localStorage.getItem("cart"));
+                }
+
+                // Increment the cart items when clicked
+
+                var count = 0;
+                for(var item in cart){
+                count += cart[item][0];
+                }
+                document.getElementById('cart').innerHTML = count;
+
+                // Popover doesnot allow all html tags to popup so we have to do this to add specific html tags in the popover.
+                var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
+
+                // To allow button elements
+                myDefaultAllowList.button = []
+
+                // You can push your custom regex to validate your attributes.
+                // Be careful about your regular expressions being too lax
+                var myCustomRegex = /^data-my-app-[\w-]+/
+                myDefaultAllowList['*'].push(myCustomRegex)
+
+                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+                var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+                    return new bootstrap.Popover(popoverTriggerEl)
+                });
+                updatePopcart(cart);
+                function updatePopcart(cart)
+                {
+                    var popstr = "";
+                    var i = 1;
+                    popstr = "" + "<h5>Cart for your items in my shopping cart:</h5><div class='mx-2 my-2'> ";
+                    for(var item in cart){
+                        popstr = popstr + "<b>"+ i +") </b>";
+                        popstr = popstr + " " + cart[item][1].slice(0,19) + ".... -><b> Qty: </b>"+ cart[item][0] + "<br>";
+                        i = i+1;
+                    }
+                    popstr = popstr + "</div><div class='my-3'> <a href='/shop/checkout'><button class='btn btn-primary' id='checkout'>Checkout</button></a> <button class='btn btn-primary' id='clearCart' onclick='clearCart()'>Clear Cart</button> </div>";
+                    
+                    document.getElementById("popcart").setAttribute('data-bs-content', popstr);
+
+                    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="popover"]'))
+                    var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+                        return new bootstrap.Popover(popoverTriggerEl)
+                    });
+                }
+
+                function clearCart()
+                {
+                    cart = JSON.parse(localStorage.getItem('cart'));
+                    for(var item in cart){
+                        document.getElementById('div'+item).innerHTML = "<button id='"+ item +"' class='btn btn-primary cart'>Add To Cart</button>";
+                    }
+                    localStorage.clear();
+                    location.reload();
+                }
+
+        {% if thanks %}
+            alert('You successfully submitted your credentials for contacting us, we will contact you soon in the given email address');
+            document.location = "/shop";
+        {% endif %}
+    </script>
+{% endblock %}

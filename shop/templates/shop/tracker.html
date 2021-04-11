@@ -1,0 +1,214 @@
+{% extends 'shop/basic.html' %}
+
+{% block titles%}UniCart Tracker{% endblock %}
+{% block css%}
+
+{% endblock %}
+{% block body%}
+	<div class="container mt-5">
+		<div class="col">
+			<h5>UniCart Tracker, Enter your orderId and email to track your order:</h5>	
+			<div class="mt-4">
+				<form action="#" method="post" class="row g-3" autocomplete="off" id="trackerForm">{% csrf_token %}
+					<div class="col-6">
+					    <label for="OrderId" class="form-label">Order Id</label>
+					    <input type="text" class="form-control" id="OrderId" name="OrderId" required>
+					</div>
+					<div class="col-md-6">
+					    <label for="inputEmail4" class="form-label">Email</label>
+					    <input type="email" class="form-control" id="inputEmail4" name="email" required>
+					</div>
+					<div class="col-12 mt-2 mb-5">
+					    <button type="submit" class="btn btn-primary" id="track">Track Order</button>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="col mt-5">
+			<h5>Your Order Status:</h5>
+			<div class="my-4">
+				<ul class="list-group" id="items">
+					<li class="list-item">{{ date }}: {{ desc }}</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block js %}
+	<script>
+		if(localStorage.getItem("cart") == null){
+            var cart = {};
+        }
+        else{
+            cart = JSON.parse(localStorage.getItem("cart"));
+        }
+
+        // Increment the cart items when clicked
+
+        var count = 0;
+        for(var item in cart){
+        count += cart[item][0];
+        }
+        document.getElementById('cart').innerHTML = count;
+
+        // Popover doesnot allow all html tags to popup so we have to do this to add specific html tags in the popover.
+		var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
+
+		// To allow button elements
+		myDefaultAllowList.button = []
+
+		// You can push your custom regex to validate your attributes.
+		// Be careful about your regular expressions being too lax
+		var myCustomRegex = /^data-my-app-[\w-]+/
+		myDefaultAllowList['*'].push(myCustomRegex)
+
+		var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+		var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+			return new bootstrap.Popover(popoverTriggerEl)
+		});
+        updatePopcart(cart);
+        function updatePopcart(cart)
+        {
+            var popstr = "";
+            var i = 1;
+            popstr = "" + "<h5>Cart for your items in my shopping cart:</h5><div class='mx-2 my-2'> ";
+            for(var item in cart){
+                popstr = popstr + "<b>"+ i +") </b>";
+                popstr = popstr + " " + cart[item][1].slice(0,19) + ".... -><b> Qty: </b>"+ cart[item][0] + "<br>";
+                i = i+1;
+            }
+            popstr = popstr + "</div><div class='my-3'> <a href='/shop/checkout'><button class='btn btn-primary' id='checkout'>Checkout</button></a> <button class='btn btn-primary' id='clearCart' onclick='clearCart()'>Clear Cart</button> </div>";
+			
+			document.getElementById("popcart").setAttribute('data-bs-content', popstr);
+
+			var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="popover"]'))
+			var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
+				return new bootstrap.Popover(popoverTriggerEl)
+			});
+        }
+
+        function clearCart()
+        {
+            cart = JSON.parse(localStorage.getItem('cart'));
+            for(var item in cart){
+                document.getElementById('div'+item).innerHTML = "<button id='"+ item +"' class='btn btn-primary cart'>Add To Cart</button>";
+            }
+            localStorage.clear();
+            location.reload();
+        }
+	 
+		// let formSubmit = document.getElementById("trackerForm");
+		// formSubmit.addEventListener('submit', function(event){
+		// 	event.preventDefault();
+		// 	// $("#items").empty();
+		// 	document.getElementById("items").nodeValue = "";
+	    // 	var FormData = {
+	    // 		"orderId": document.querySelector('[name=OrderId]').value,
+	    // 		"email": document.querySelector('[name=email]').value,
+		// 		"csrfmiddlewaretoken":  '{{ csrf_token }}'
+				
+	    // 	}
+
+	    // 	// $.agax({
+	    // 	// 	type: 'post',
+	    // 	// 	url: '/shop/tracker/',
+	    // 	// 	data: formdata,
+	    // 	// 	encode: true
+		// 	// })
+
+			// function getCookie(name) {
+			// 	var cookieValue = null;
+			// 	if (document.cookie && document.cookie != '') {
+			// 		var cookies = document.cookie.split(';');
+			// 		for (var i = 0; i < cookies.length; i++) {
+			// 			var cookie = cookies[i].trim();
+			// 			// Does this cookie string begin with the name we want?
+			// 			if (cookie.substring(0, name.length + 1) == (name + '=')) {
+			// 				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+			// 				break;
+			// 			}
+			// 		}
+			// 	}
+			// 	return cookieValue;
+			// }
+
+		// 	console.log(FormData);
+		// 	var r = new XMLHttpRequest(); 
+			
+		// 	r.open("POST", "/shop/tracker/", true);
+		// 	r.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+		// 	r.onreadystatechange = function () {
+
+		// 		if (r.readyState != 4 || r.status != 200) return; 
+		// 		console.log(r.responseText);
+		// 		// console.log("request send");
+		// 	};
+		// 	console.log(r);
+		// 	r.send(JSON.stringify(FormData));
+
+	    	// .done(function(data){
+	    	// 	console.log(data);
+	    	// });
+	    	// event.preventDefault();
+		// });
+	    // $('#trackerForm').submit(function(event){
+	    // 	$("#items").empty();
+	    // 	var formdata = {
+	    // 		"orderId": $('input[name= OrderId]').val(),
+	    // 		"email": $('input[name= email').val(),
+	    // 		"csrfmiddlewaretoken":  $('input[name= csrfmiddlewaretoken').val()
+	    // 	}
+
+	    // 	$.agax({
+	    // 		type: 'post',
+	    // 		url: '/shop/tracker/',
+	    // 		data: formdata,
+	    // 		encode: true
+	    // 	})
+
+	    // 	.done(function(data){
+	    // 		console.log(data);
+	    // 	});
+	    // 	event.preventDefault();
+		// });
+		
+		window.addEventListener( "load", function (event) {
+			event.preventDefault();
+			function sendData() {
+				// document.getElementById("items").innerHTML = "";
+				const XHR = new XMLHttpRequest();
+
+				// Bind the FormData object and the form element
+				const FD = new FormData( form );
+
+				// Define what happens on successful data submission
+				XHR.addEventListener( "load", function(event) {
+				alert( "form submitted");
+				} );
+
+				// Define what happens in case of error
+				XHR.addEventListener( "error", function( event ) {
+				alert( 'Oops! Something went wrong.' );
+				} );
+
+				// Set up our request
+				XHR.open( "POST", "/shop/tracker/", true );
+
+				// The data sent is what the user provided in the form
+				
+				XHR.send( FD );
+			}
+
+			// Access the form element...
+			const form = document.getElementById( "trackerForm" );
+
+			// ...and take over its submit event.
+			form.addEventListener( "submit", function ( event ) {
+				event.preventDefault();
+
+				sendData();
+			} );
+		} );
+
+	</script>
+{% endblock %}
