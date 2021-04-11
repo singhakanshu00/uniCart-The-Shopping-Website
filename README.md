@@ -11,3 +11,8 @@ Commands:
   1) Come inside the current directory where your manage.py file is there.
   2) Inside the terminal: python manage.py runserver
   
+Home Page:
+![homePage](https://user-images.githubusercontent.com/61490175/114314269-a03f7b00-9b17-11eb-9144-2fcabdfa4e22.jpg)
+
+Contact Us page:
+![Contact](https://user-images.githubusercontent.com/61490175/114314347-d8df5480-9b17-11eb-8a00-05d0d94319e6.jpg)
